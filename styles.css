@@ -22,70 +22,6 @@ body {
     overflow: hidden;
 }
 
-/* WiFi Status Indicator */
-.wifi-status {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    z-index: 1000;
-}
-
-.wifi-icon {
-    width: 24px;
-    height: 24px;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-.wifi-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.wifi-icon .wifi-wave {
-    fill: var(--warning);
-    transition: all 0.3s ease;
-}
-
-.wifi-icon.connected .wifi-wave {
-    fill: var(--success);
-}
-
-.wifi-icon::after {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: -4px;
-    right: -4px;
-    bottom: -4px;
-    border-radius: 50%;
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.wifi-icon.connected::after {
-    animation: pulse 2s infinite;
-}
-
-.wifi-text {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    transition: all 0.3s ease;
-}
-
-.wifi-text.connected {
-    color: var(--text);
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0.8; box-shadow: 0 0 0 0 rgba(80, 250, 123, 0.4); }
-    70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 10px rgba(80, 250, 123, 0); }
-    100% { transform: scale(0.8); opacity: 0.8; box-shadow: 0 0 0 0 rgba(80, 250, 123, 0); }
-}
-
 /* Login Page Styles */
 .login-container {
     display: flex;
@@ -859,11 +795,6 @@ body {
 
     .access-title {
         font-size: 1.5rem;
-    }
-
-    .wifi-status {
-        top: 15px;
-        right: 15px;
     }
 
     .event-log {

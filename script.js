@@ -8,15 +8,16 @@ let remainingSeconds = 0;
 // Firebase reference
 let database;
 let analytics;
+let logEventFunction;
 
 // Initialize when page loads
 window.addEventListener('load', function() {
     // Initialize Firebase if available
-    if (window.firebaseApp) {
-        const { getDatabase, logEvent } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
-        database = getDatabase(window.firebaseApp);
+    if (window.firebaseDatabase) {
+        database = window.firebaseDatabase;
         analytics = window.firebaseAnalytics;
-        console.log("Firebase initialized successfully");
+        logEventFunction = window.firebaseLogEvent;
+        console.log("Firebase initialized in script.js");
     }
     
     // Check if there's a countdown in progress in localStorage
@@ -80,8 +81,8 @@ document.getElementById('loginBtn').addEventListener('click', function() {
             addLogEntry("Control systems initialized");
             
             // Log login event to Firebase Analytics if available
-            if (analytics) {
-                logEvent(analytics, 'login', {
+            if (analytics && logEventFunction) {
+                logEventFunction(analytics, 'login', {
                     method: 'manual',
                     user_id: username
                 });
@@ -240,9 +241,10 @@ document.getElementById('overrideBtn').addEventListener('click', function() {
 });
 
 // FIREBASE IGNITION FUNCTION
-function triggerIgnition() {
+async function triggerIgnition() {
     if (database) {
         try {
+            // Import Firebase Database functions
             const { set, ref } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js");
             const ignitionRef = ref(database, "ignition");
             
@@ -258,8 +260,8 @@ function triggerIgnition() {
             console.log("Firebase ignition triggered:", ignitionData);
             
             // Log analytics event
-            if (analytics) {
-                logEvent(analytics, 'ignition_triggered', {
+            if (analytics && logEventFunction) {
+                logEventFunction(analytics, 'ignition_triggered', {
                     mission_id: 'eklavya_launch',
                     user_id: '2315046',
                     timestamp: Date.now()
@@ -338,40 +340,41 @@ function startCountdown(totalSeconds) {
             addLogEntry("Countdown complete! Ignition sequence finished!");
             
             // TRIGGER IGNITION via Firebase
-            const ignitionSuccess = triggerIgnition();
-            if (!ignitionSuccess) {
-                addLogEntry("WARNING: Firebase ignition command failed!", "warning");
-            }
-            
-            // Show ignition notification
-            const ignitionNote = document.getElementById('ignitionNotification');
-            const ignitionMessage = document.getElementById('ignitionMessage');
-            
-            if (ignitionSuccess) {
-                ignitionMessage.textContent = "Countdown complete. Rocket ignition initiated via Firebase.";
-            } else {
-                ignitionMessage.textContent = "Countdown complete. WARNING: Firebase ignition command failed!";
-            }
-            
-            ignitionNote.classList.add('active');
-            
-            // After ignition notification, show mission complete panel
-            setTimeout(() => {
-                ignitionNote.classList.remove('active');
-                document.getElementById('countdownPanel').style.display = 'none';
-                document.getElementById('missionCompletePanel').style.display = 'block';
+            triggerIgnition().then(ignitionSuccess => {
+                if (!ignitionSuccess) {
+                    addLogEntry("WARNING: Firebase ignition command failed!", "warning");
+                }
                 
-                // Set mission completion stats
-                document.getElementById('launchTime').textContent = formatTime(totalCountdownSeconds);
-                const completionTime = new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                document.getElementById('completionTime').textContent = completionTime;
+                // Show ignition notification
+                const ignitionNote = document.getElementById('ignitionNotification');
+                const ignitionMessage = document.getElementById('ignitionMessage');
                 
-                // Reset countdown display style
-                document.getElementById('countdownDisplay').style.color = '';
-                document.getElementById('countdownDisplay').style.textShadow = '';
+                if (ignitionSuccess) {
+                    ignitionMessage.textContent = "Countdown complete. Rocket ignition initiated via Firebase.";
+                } else {
+                    ignitionMessage.textContent = "Countdown complete. WARNING: Firebase ignition command failed!";
+                }
                 
-                addLogEntry("Mission complete. All systems nominal.");
-            }, 3000);
+                ignitionNote.classList.add('active');
+                
+                // After ignition notification, show mission complete panel
+                setTimeout(() => {
+                    ignitionNote.classList.remove('active');
+                    document.getElementById('countdownPanel').style.display = 'none';
+                    document.getElementById('missionCompletePanel').style.display = 'block';
+                    
+                    // Set mission completion stats
+                    document.getElementById('launchTime').textContent = formatTime(totalCountdownSeconds);
+                    const completionTime = new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    document.getElementById('completionTime').textContent = completionTime;
+                    
+                    // Reset countdown display style
+                    document.getElementById('countdownDisplay').style.color = '';
+                    document.getElementById('countdownDisplay').style.textShadow = '';
+                    
+                    addLogEntry("Mission complete. All systems nominal.");
+                }, 3000);
+            });
         }
     }, 1000);
 }
@@ -409,40 +412,41 @@ function resumeCountdown() {
             addLogEntry("Countdown complete! Ignition sequence finished!");
             
             // TRIGGER IGNITION via Firebase
-            const ignitionSuccess = triggerIgnition();
-            if (!ignitionSuccess) {
-                addLogEntry("WARNING: Firebase ignition command failed!", "warning");
-            }
-            
-            // Show ignition notification
-            const ignitionNote = document.getElementById('ignitionNotification');
-            const ignitionMessage = document.getElementById('ignitionMessage');
-            
-            if (ignitionSuccess) {
-                ignitionMessage.textContent = "Countdown complete. Rocket ignition initiated via Firebase.";
-            } else {
-                ignitionMessage.textContent = "Countdown complete. WARNING: Firebase ignition command failed!";
-            }
-            
-            ignitionNote.classList.add('active');
-            
-            // After ignition notification, show mission complete panel
-            setTimeout(() => {
-                ignitionNote.classList.remove('active');
-                document.getElementById('countdownPanel').style.display = 'none';
-                document.getElementById('missionCompletePanel').style.display = 'block';
+            triggerIgnition().then(ignitionSuccess => {
+                if (!ignitionSuccess) {
+                    addLogEntry("WARNING: Firebase ignition command failed!", "warning");
+                }
                 
-                // Set mission completion stats
-                document.getElementById('launchTime').textContent = formatTime(totalCountdownSeconds);
-                const completionTime = new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                document.getElementById('completionTime').textContent = completionTime;
+                // Show ignition notification
+                const ignitionNote = document.getElementById('ignitionNotification');
+                const ignitionMessage = document.getElementById('ignitionMessage');
                 
-                // Reset countdown display style
-                document.getElementById('countdownDisplay').style.color = '';
-                document.getElementById('countdownDisplay').style.textShadow = '';
+                if (ignitionSuccess) {
+                    ignitionMessage.textContent = "Countdown complete. Rocket ignition initiated via Firebase.";
+                } else {
+                    ignitionMessage.textContent = "Countdown complete. WARNING: Firebase ignition command failed!";
+                }
                 
-                addLogEntry("Mission complete. All systems nominal.");
-            }, 3000);
+                ignitionNote.classList.add('active');
+                
+                // After ignition notification, show mission complete panel
+                setTimeout(() => {
+                    ignitionNote.classList.remove('active');
+                    document.getElementById('countdownPanel').style.display = 'none';
+                    document.getElementById('missionCompletePanel').style.display = 'block';
+                    
+                    // Set mission completion stats
+                    document.getElementById('launchTime').textContent = formatTime(totalCountdownSeconds);
+                    const completionTime = new Date().toLocaleTimeString('en-US', {hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    document.getElementById('completionTime').textContent = completionTime;
+                    
+                    // Reset countdown display style
+                    document.getElementById('countdownDisplay').style.color = '';
+                    document.getElementById('countdownDisplay').style.textShadow = '';
+                    
+                    addLogEntry("Mission complete. All systems nominal.");
+                }, 3000);
+            });
         }
     }, 1000);
 }
